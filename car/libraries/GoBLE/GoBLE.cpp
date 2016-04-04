@@ -172,7 +172,7 @@ int _GoBLE::bleDataPackageParser() {
 void  _GoBLE::bleDataReceiver() {
 
   byte inputByte = Serial.read();
-
+  Serial.println(inputByte, HEX);
   if (DEBUGDATARECEIVER) {
     Serial.print("bleDataReceiver -> new data:");
     Serial.println(inputByte, HEX);
