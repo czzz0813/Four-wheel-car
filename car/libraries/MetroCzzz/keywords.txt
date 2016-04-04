@@ -1,8 +1,8 @@
 MetroCzzz	KEYWORD1
-forward		LITERAL1
+forward	LITERAL1
 back	LITERAL1
-trunLeft	LITERAL1
-trunRight	LITERAL1
+turnLeft	LITERAL1
+turnRight	LITERAL1
 stop	LITERAL1
-trunLeftBack	LITERAL1
-trunRightBack	LITERAL1
+turnLeftBack	LITERAL1
+turnRightBack	LITERAL1

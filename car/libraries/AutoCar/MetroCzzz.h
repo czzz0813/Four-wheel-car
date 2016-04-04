@@ -1,10 +1,10 @@
 
 #ifndef MetroCzzz_h
 #define MetroCzzz_h
-#define SLPIN = 5;     //M1 Speed Control ËÙ¶È¿ØÖÆÒý½Å
-#define SRPIN = 6;     //M2 Speed Control  ËÙ¶È¿ØÖÆÒý½Å
-#define DLPIN = 4;     //M1 Direction Control ·½Ïò¿ØÖÆÒý½Å
-#define DRPIN = 7;     //M1 Direction Control  ·½Ïò¿ØÖÆÒý½Å
+#define SLPIN  5     //M1 Speed Control ï¿½Ù¶È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define SRPIN  6     //M2 Speed Control  ï¿½Ù¶È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define DLPIN  4     //M1 Direction Control ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define DRPIN  7     //M1 Direction Control  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 class MetroCzzz
 {
 public:

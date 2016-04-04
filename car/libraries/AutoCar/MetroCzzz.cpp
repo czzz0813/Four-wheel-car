@@ -6,10 +6,11 @@
 
 MetroCzzz::MetroCzzz()
 {
-speedLeftPin= SLPIN;     //M1 Speed Control 速度控制引脚
-speedRightpin=SRPIN;
-dirLeftPin=DLPIN;
-dirRightPin=DRPIN;
+  MetroCzzz(SLPIN,SRPIN,DLPIN,DRPIN);
+//speedLeftPin = SLPIN;   //M1 Speed Control 速度控制引脚
+//speedRightpin = SRPIN;
+//dirLeftPin = DLPIN;
+//dirRightPin = DRPIN;
 }
 
 MetroCzzz::MetroCzzz(int slpin,int srpin,int dlpin,int drpin)

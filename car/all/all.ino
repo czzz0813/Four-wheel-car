@@ -23,7 +23,7 @@ int sweepFlag = 1;   //舵机是否回头标识
 
 int URPWM = 13; // PWM Output 0－25000US，Every 50US represent 1cm  速度
 int URTRIG= 12; // PWM trigger pin       PWM引脚触发
-uint8_t EnPwmCmd[4]={0x44,0x02,0xbb,0x01};    // distance measure command  距离测量命令
+//uint8_t EnPwmCmd[4]={0x44,0x02,0xbb,0x01};    // distance measure command  距离测量命令
 
 
 int joystickX, joystickY;   //蓝牙摇杆
