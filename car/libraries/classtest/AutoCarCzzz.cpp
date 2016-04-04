@@ -1,14 +1,16 @@
 
-
 #include "AutoCarCzzz.h"
 AutoCarCzzz::AutoCarCzzz()
 {
-  pos = 60;   //舵机初始化角度  60-120
-  sweepFlag = 1;   //舵机是否回头标识
-  actualDistance = 500;  //微声波测距离
+//  pos = 60;   //舵机初始化角度  60-120
+//  sweepFlag = 1;   //舵机是否回头标识
+//  actualDistance = 500;  //微声波测距离
 
     sensorSetup();                   //传感器设置
-    //TCs.AddFunc(0, servoSweep, 20);             //舵机定时转
+  attachInterrupt(LEFTCODE, lwheelSpeed, CHANGE);    //init the interrupt mode for the digital pin 2
+  //attachInterrupt(RIGHTCODE, rwheelSpeed, CHANGE);   //init the interrupt mode for the digital pin 3
+    
+    //TCs.AddFunc(0, AutoCarCzzz::servoSweep, 20);             //舵机定时转
     //TCs.AddFunc(1, checkAuto, 20);              //定时检查是否切回自动模式
 
   
@@ -39,6 +41,51 @@ void AutoCarCzzz::servoSweep()
         }
     
 }
+
+void AutoCarCzzz::checkWheelStoped()
+{
+////  static unsigned long timer = 0;                //print manager timer
+////  
+// if(millis() - timer > 3000){                   
+////
+////    if (coder[0]<5 && coder[1]<5)
+////    {
+////            carStop();
+////            delay(500);
+////            //carBack(100,100);   //home              
+////            carBack(100,100);
+////            //Serial.println("carBack");
+////            delay(2000);
+////    }
+//    //    Serial.print("Coder value: ");
+////    Serial.print(coder[0]);
+////    Serial.print("[Left Wheel] ");
+////    Serial.print(coder[1]);
+////    Serial.println("[Right Wheel]");
+////    
+////    lastSpeed[0] = coder[0];   //record the latest speed value
+////    lastSpeed[1] = coder[1];
+//    coder[0] = 0;                 //clear the data buffer
+//    coder[1] = 0;
+//    timer = millis();
+//  }
+}
+
+
+void lwheelSpeed()
+{
+//  Serial.print("fuckleft ");
+//  coder[0] ++;  //count the left wheel encoder interrupts
+}
+
+
+void rwheelSpeed()
+{
+  //Serial.print("fuckright ");
+//  coder[1] ++; //count the right wheel encoder interrupts
+}
+
+
                                      
  
 //传感器设置
@@ -88,7 +135,7 @@ void AutoCarCzzz::autoRun()
     int leftSpeed=0;
     int rightSpeed=0;
     int myDelay=0;
-  
+        checkWheelStoped();
     actualDistance = measureDistance();
     posNow=pos;
     
