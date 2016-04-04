@@ -21,13 +21,25 @@ Servo myservo;  // create servo object to control a servo  舵机
 int pos = 60;   //舵机初始化角度  60-120
 int sweepFlag = 1;   //舵机是否回头标识
 
-int URPWM = 3; // PWM Output 0－25000US，Every 50US represent 1cm  速度
+int URPWM = 13; // PWM Output 0－25000US，Every 50US represent 1cm  速度
 int URTRIG= 12; // PWM trigger pin       PWM引脚触发
 uint8_t EnPwmCmd[4]={0x44,0x02,0xbb,0x01};    // distance measure command  距离测量命令
 
 
 int joystickX, joystickY;   //蓝牙摇杆
 int buttonState[6];         //蓝牙按钮
+
+
+
+
+#define LEFT 1
+#define RIGHT 0
+long coder[2] = {
+  0,0};
+int lastSpeed[2] = {
+  0,0};  
+
+
 
 void setup()
 {                                 
@@ -38,6 +50,8 @@ void setup()
     SensorSetup();                   //传感器设置
     TCs.AddFunc(0, servoSweep, 20);             //舵机定时转
     TCs.AddFunc(1, checkAuto, 20);              //定时检查是否切回自动模式
+     attachInterrupt(LEFT, LwheelSpeed, CHANGE);    //init the interrupt mode for the digital pin 2
+  attachInterrupt(RIGHT, RwheelSpeed, CHANGE);   //init the interrupt mode for the digital pin 3
 }
  
 void loop()
@@ -52,6 +66,50 @@ void loop()
         manRun();               //手动模式            
     }   
 }
+
+void checkWheelStoped()
+{
+  static unsigned long timer = 0;                //print manager timer
+  
+  if(millis() - timer > 3000){                   
+
+    if (coder[0]<5 && coder[1]<5)
+    {
+            carStop();
+            delay(500);
+            //carBack(100,100);   //home              
+            carBack(100,100);
+            //Serial.println("carBack");
+            delay(2000);
+    }
+    //    Serial.print("Coder value: ");
+//    Serial.print(coder[0]);
+//    Serial.print("[Left Wheel] ");
+//    Serial.print(coder[1]);
+//    Serial.println("[Right Wheel]");
+//    
+//    lastSpeed[0] = coder[0];   //record the latest speed value
+//    lastSpeed[1] = coder[1];
+    coder[0] = 0;                 //clear the data buffer
+    coder[1] = 0;
+    timer = millis();
+  }
+}
+
+
+void LwheelSpeed()
+{
+//  Serial.print("fuckleft ");
+  coder[0] ++;  //count the left wheel encoder interrupts
+}
+
+
+void RwheelSpeed()
+{
+  //Serial.print("fuckright ");
+  coder[1] ++; //count the right wheel encoder interrupts
+}
+
 
 ///检查是否切回自动模式
 void checkAuto()
@@ -248,7 +306,7 @@ void autoRunNew()
     int leftSpeed=0;
     int rightSpeed=0;
     int myDelay=0;
-    
+  
     if(measureDistance.check() == 1)
     {
         actualDistance = MeasureDistance();
@@ -298,7 +356,9 @@ void autoRunNew()
 ///自动巡航  --old ver
 void autoRun()
 {
-    
+  
+  
+  
     // servoSweep();
     int posNow=90;
     int initTurnSpeed=200;
@@ -314,6 +374,7 @@ void autoRun()
     int myDelay=0;
     // checkAuto();
     //delay(100);
+      checkWheelStoped();
     if(measureDistance.check() == 1)
     {
         actualDistance = MeasureDistance();
@@ -407,20 +468,20 @@ int MeasureDistance()
 ///根据摇杆控制车的方向和速度
 void carGo(int x,int y)
 {
-    Serial.print("x,y value:  ");
-    Serial.print(x);
-    Serial.print("  ");
-    Serial.println(y);
+   // Serial.print("x,y value:  ");
+   // Serial.print(x);
+   // Serial.print("  ");
+   // Serial.println(y);
     int leftSpeed=0,rightSpeed=0;
     if (y>=0)
     {
-        Serial.println("go ahead");
+     //   Serial.println("go ahead");
         digitalWrite(directionPin_M1,HIGH); 
         digitalWrite(directionPin_M2,HIGH); 
     }
     else
     {
-        Serial.print("go back");
+    //    Serial.print("go back");
         digitalWrite(directionPin_M1,LOW); 
         digitalWrite(directionPin_M2,LOW); 
     }
@@ -452,9 +513,9 @@ void carGo(int x,int y)
     }
     analogWrite (speedPin_M1,leftSpeed);              //PWM Speed Control
     analogWrite (speedPin_M2,rightSpeed);
-    Serial.print(leftSpeed);
-    Serial.print("   ");
-    Serial.println(rightSpeed); 
+  //  Serial.print(leftSpeed);
+  //  Serial.print("   ");
+  //  Serial.println(rightSpeed); 
 }
 
 ///停止
