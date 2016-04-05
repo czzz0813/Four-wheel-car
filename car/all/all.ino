@@ -62,8 +62,8 @@ void setup()
  
  
 void loop()
-{
-  getCompass();
+{ 
+// getCompass();
     if (isAuto) 
     { 
          autoRun();           //老自动巡航系统
@@ -75,12 +75,11 @@ void loop()
     }   
 }
 
-void getCompass()
+int  getCompass()
 {
    compass.read();
   int heading = compass.heading((LSM303DLH::vector){0,-1,0});
-  Serial.println(heading);
-  delay(200);
+  return heading;
 }
 
 void compassInit()
@@ -378,9 +377,6 @@ void autoRunNew()
 ///自动巡航  --old ver
 void autoRun()
 {
-  
-  
-  
     // servoSweep();
     int posNow=90;
     int initTurnSpeed=200;
@@ -396,7 +392,10 @@ void autoRun()
     int myDelay=0;
     // checkAuto();
     //delay(100);
-      checkWheelStoped();
+     checkWheelStoped();
+     int initAngle=0;
+     int changeAngle=180;
+      
    // if(measureDistance.check() == 1)
    // {
         actualDistance = MeasureDistance();
@@ -413,6 +412,7 @@ void autoRun()
     //Serial.println(actualDistance);
     if(actualDistance <= 30 )
     {
+      initAngle=getCompass();
       myDelay=(1-(abs((90-pos))/30))*initTurnDelay;
         //  myservo.write(90);
         if(posNow>=90)
@@ -425,8 +425,10 @@ void autoRun()
             delay(2000);
             //carTurnLeft(0,150);  //home
                 leftSpeed=initTurnSpeed;
-                rightSpeed=(initTurnSpeed-150)*abs(90-pos)/30;            
-            carTurnAdvance(leftSpeed,rightSpeed);    
+                rightSpeed=(initTurnSpeed-150)*abs(90-pos)/30; 
+            turnByAngle(leftSpeed,false,changeAngle,initAngle);
+            //turnByAngle(int speed,boolean isleft,int angle,int initAngle)          
+            carTurnAdvance(leftSpeed,0);    
             //Serial.println("carTurnRight");
             delay(myDelay);
             // delay(1000);  //home
@@ -443,7 +445,8 @@ void autoRun()
             //carTurnLeft(150,0);  //home
                rightSpeed =initTurnSpeed;
                leftSpeed=(initTurnSpeed-150)*abs(90-pos)/30;            
-            carTurnAdvance(leftSpeed,rightSpeed);    
+            carTurnAdvance(0,rightSpeed);    
+             turnByAngle(initTurnSpeed,true,changeAngle,initAngle);
             //carTurnAdvance(0,200);
             //Serial.println("carTurnLeft");
             delay(myDelay);
@@ -457,6 +460,89 @@ void autoRun()
         delay(200);
     }
     //zz  carBack(150,150);
+}
+
+void turnByAngle(int speed,boolean isleft,int angle,int initAngle)
+{
+  boolean isloop=true;
+  int nowAngle;
+  int targetAngle;
+  boolean isChange=false;
+  if (isleft)
+    targetAngle =initAngle-angle;
+   else
+    targetAngle =initAngle+angle;
+   if (targetAngle>360)
+   {
+      targetAngle=targetAngle-360;
+      isChange=true;
+   }
+   else if(targetAngle<0)
+   {
+      targetAngle=360+targetAngle;
+      isChange=true;
+   }
+  while (isloop)
+  {
+    nowAngle=getCompass();
+    if (isleft)
+    {
+      if (isChange)
+      {
+        if (nowAngle<targetAngle && nowAngle>initAngle)
+        {
+          isloop=false;
+        }
+        else
+        {
+          carTurnAdvance(0,speed);
+          delay(200);    
+        }
+      }
+      else
+      {
+        if (nowAngle<targetAngle)
+        {
+          isloop=false;
+        }
+        else
+        {
+          carTurnAdvance(0,speed);
+          delay(200);    
+        }
+        
+      }
+      
+    }
+    else
+    {
+      if (isChange)
+      {
+        if (nowAngle>targetAngle && nowAngle<initAngle)
+        {
+          isloop=false;
+        }
+        else
+        {
+          carTurnAdvance(speed,0);
+          delay(200);    
+        }
+      }
+      else
+      {
+        if (nowAngle>targetAngle)
+        {
+          isloop=false;
+        }
+        else
+        {
+          carTurnAdvance(speed,0);
+          delay(200);    
+        }
+        
+      }
+    }
+  }
 }
   
                                      
