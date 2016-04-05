@@ -3,10 +3,12 @@
 #include <Metro.h>      //定时任务
 #include <GoBLE.h>      //蓝牙手柄
 #include <EEPROM.h>     //断电存储
+#include <Wire.h>
+#include <LSM303DLH.h>
 
 ///czzz 定时任务  好像没起作用
-Metro measureDistance = Metro(50);
-Metro sweepServo = Metro(20);
+//Metro measureDistance = Metro(50);
+//Metro sweepServo = Metro(20);
 ///czzz 要测试
 
 int speedPin_M1 = 5;     //M1 Speed Control 速度控制引脚
@@ -23,12 +25,13 @@ int sweepFlag = 1;   //舵机是否回头标识
 
 int URPWM = 13; // PWM Output 0－25000US，Every 50US represent 1cm  速度
 int URTRIG= 12; // PWM trigger pin       PWM引脚触发
+boolean isStop=false;
 //uint8_t EnPwmCmd[4]={0x44,0x02,0xbb,0x01};    // distance measure command  距离测量命令
 
 
 int joystickX, joystickY;   //蓝牙摇杆
 int buttonState[6];         //蓝牙按钮
-
+LSM303DLH compass;
 
 
 
@@ -52,10 +55,15 @@ void setup()
     TCs.AddFunc(1, checkAuto, 20);              //定时检查是否切回自动模式
      attachInterrupt(LEFT, LwheelSpeed, CHANGE);    //init the interrupt mode for the digital pin 2
   attachInterrupt(RIGHT, RwheelSpeed, CHANGE);   //init the interrupt mode for the digital pin 3
+  compassInit();
+  
 }
+ 
+ 
  
 void loop()
 {
+  getCompass();
     if (isAuto) 
     { 
          autoRun();           //老自动巡航系统
@@ -67,20 +75,34 @@ void loop()
     }   
 }
 
+void getCompass()
+{
+   compass.read();
+  int heading = compass.heading((LSM303DLH::vector){0,-1,0});
+  Serial.println(heading);
+  delay(200);
+}
+
+void compassInit()
+{
+  Wire.begin();
+  compass.enableDefault();
+  
+  // Calibration values. Use the Calibrate example program to get the values for
+  // your compass.
+  compass.m_min.x = -453; compass.m_min.y = -182; compass.m_min.z = -409;
+  compass.m_max.x = -399; compass.m_max.y = +35; compass.m_max.z = -372;
+}
+
 void checkWheelStoped()
 {
   static unsigned long timer = 0;                //print manager timer
   
-  if(millis() - timer > 3000){                   
+  if(millis() - timer > 2000){                   
 
     if (coder[0]<5 && coder[1]<5)
     {
-            carStop();
-            delay(500);
-            //carBack(100,100);   //home              
-            carBack(100,100);
-            //Serial.println("carBack");
-            delay(2000);
+         isStop=true;
     }
     //    Serial.print("Coder value: ");
 //    Serial.print(coder[0]);
@@ -307,13 +329,13 @@ void autoRunNew()
     int rightSpeed=0;
     int myDelay=0;
   
-    if(measureDistance.check() == 1)
-    {
+   // if(measureDistance.check() == 1)
+    //{
         actualDistance = MeasureDistance();
         posNow=pos;
         // Serial.println(actualDistance);
         //delay(100);
-    }
+    //}
     //Serial.println(actualDistance);
     if(actualDistance <= 40)
     {
@@ -375,15 +397,21 @@ void autoRun()
     // checkAuto();
     //delay(100);
       checkWheelStoped();
-    if(measureDistance.check() == 1)
-    {
+   // if(measureDistance.check() == 1)
+   // {
         actualDistance = MeasureDistance();
         posNow=pos;
         // Serial.println(actualDistance);
         delay(100);
+  //}
+    if(isStop) 
+    {
+      actualDistance=25;
+      isStop=false;
     }
+  //  getCompass();
     //Serial.println(actualDistance);
-    if(actualDistance <= 30)
+    if(actualDistance <= 30 )
     {
       myDelay=(1-(abs((90-pos))/30))*initTurnDelay;
         //  myservo.write(90);
@@ -569,8 +597,8 @@ void carBack(int leftSpeed,int rightSpeed)
 ///舵机转动
 void servoSweep()
 {
-    if(sweepServo.check() == 1)
-    {
+ //   if(sweepServo.check() == 1)
+  //  {
         if(sweepFlag)
         {  
             if(pos>=60 && pos<=120)
@@ -589,5 +617,5 @@ void servoSweep()
             }
             if(pos<61)  sweepFlag = true;
         }
-    }
+    //}
 }
