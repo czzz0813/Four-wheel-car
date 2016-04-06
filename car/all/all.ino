@@ -18,6 +18,7 @@ int directionPin_M2 = 7;     //M1 Direction Control  方向控制引脚
 boolean isAuto=false;   //需要保持状态  eprom
 unsigned long actualDistance = 500;  //微声波测距离
 boolean bpress5=false;    //自动切手动 防止多次响应
+int initAdvanceSpeed=70;
 
 Servo myservo;  // create servo object to control a servo  舵机 
 int pos = 60;   //舵机初始化角度  60-120
@@ -39,7 +40,7 @@ LSM303DLH compass;
 #define RIGHT 0
 long coder[2] = {
   0,0};
-int lastSpeed[2] = {
+int forwordSpeed[2] = {
   0,0};  
 
 
@@ -89,20 +90,29 @@ void compassInit()
   
   // Calibration values. Use the Calibrate example program to get the values for
   // your compass.
-  compass.m_min.x = -453; compass.m_min.y = -182; compass.m_min.z = -409;
-  compass.m_max.x = -399; compass.m_max.y = +35; compass.m_max.z = -372;
+// M min X: -358 Y: -236 Z: -394 M max X: -292 Y: -198 Z: -333
+
+  compass.m_min.x = -358; compass.m_min.y = -236; compass.m_min.z = -394;
+  compass.m_max.x = -292; compass.m_max.y =-198; compass.m_max.z = -333;
 }
 
 void checkWheelStoped()
 {
+  
   static unsigned long timer = 0;                //print manager timer
   
-  if(millis() - timer > 2000){                   
-
+  if(millis() - timer > 10000){                   
+    Serial.print("checkWheelStoped:coder[0]");
+    Serial.println(coder[0]);
+      Serial.println("checkWheelStoped:coder[1]");
+    Serial.println(coder[1]);
+    
     if (coder[0]<5 && coder[1]<5)
     {
-         isStop=true;
+      Serial.println("checkWheelStoped:stop");
+       //  isStop=true;
     }
+    
     //    Serial.print("Coder value: ");
 //    Serial.print(coder[0]);
 //    Serial.print("[Left Wheel] ");
@@ -122,12 +132,14 @@ void LwheelSpeed()
 {
 //  Serial.print("fuckleft ");
   coder[0] ++;  //count the left wheel encoder interrupts
+  forwordSpeed[0]++;
 }
 
 
 void RwheelSpeed()
 {
   //Serial.print("fuckright ");
+  forwordSpeed[1]++;
   coder[1] ++; //count the right wheel encoder interrupts
 }
 
@@ -368,10 +380,28 @@ void autoRunNew()
     else
     {
         carAdvance(70,70);
+        
         //Serial.println("carAdvance");
         delay(200);
     }
     //zz  carBack(150,150);
+}
+void checkForwordSpeed(int time)
+{
+//  float sp=forwordSpeed[0]/(time/100);
+ // float xs=sp/5;
+ // initAdvanceSpeed=int(initAdvanceSpeed/xs);
+ // if (initAdvanceSpeed>254) initAdvanceSpeed=254;
+  //if (initAdvanceSpeed<=0) initAdvanceSpeed=100;
+  Serial.print("forwordSpeed:");
+ 
+  Serial.println(forwordSpeed[1]);
+   Serial.print("checkForwordSpeed:");
+ 
+  Serial.println(initAdvanceSpeed);
+  
+  
+  
 }
 
 ///自动巡航  --old ver
@@ -379,9 +409,9 @@ void autoRun()
 {
     // servoSweep();
     int posNow=90;
-    int initTurnSpeed=200;
+    int initTurnSpeed=120;
     int initTurnDelay=2000;
-    int initAdvanceSpeed=70;
+    
     int initAdvanceDelay=200;
     int initBackSpeed=100;
     int initBackDelay=2000;
@@ -394,7 +424,7 @@ void autoRun()
     //delay(100);
      checkWheelStoped();
      int initAngle=0;
-     int changeAngle=180;
+     int changeAngle=15;
       
    // if(measureDistance.check() == 1)
    // {
@@ -428,7 +458,7 @@ void autoRun()
                 rightSpeed=(initTurnSpeed-150)*abs(90-pos)/30; 
             turnByAngle(leftSpeed,false,changeAngle,initAngle);
             //turnByAngle(int speed,boolean isleft,int angle,int initAngle)          
-            carTurnAdvance(leftSpeed,0);    
+        //   carTurnAdvance(leftSpeed,0);    
             //Serial.println("carTurnRight");
             delay(myDelay);
             // delay(1000);  //home
@@ -445,7 +475,7 @@ void autoRun()
             //carTurnLeft(150,0);  //home
                rightSpeed =initTurnSpeed;
                leftSpeed=(initTurnSpeed-150)*abs(90-pos)/30;            
-            carTurnAdvance(0,rightSpeed);    
+         //   carTurnAdvance(0,rightSpeed);    
              turnByAngle(initTurnSpeed,true,changeAngle,initAngle);
             //carTurnAdvance(0,200);
             //Serial.println("carTurnLeft");
@@ -454,10 +484,17 @@ void autoRun()
         }
     }
     else
-    {
-        carAdvance(70,70);
+    { forwordSpeed[0]=0;
+        forwordSpeed[1]=0;
+          carAdvance(initAdvanceSpeed,initAdvanceSpeed);
+        
         //Serial.println("carAdvance");
         delay(200);
+        checkForwordSpeed(200);
+      
+      
+       
+        
     }
     //zz  carBack(150,150);
 }
@@ -482,9 +519,15 @@ void turnByAngle(int speed,boolean isleft,int angle,int initAngle)
       targetAngle=360+targetAngle;
       isChange=true;
    }
+  long t= millis();
   while (isloop)
   {
+    if (millis()-t>1500) isloop=false;
     nowAngle=getCompass();
+    Serial.print("turnByAngle:initAngle:");
+    Serial.print(initAngle);
+    Serial.print(" nowAngle: ");
+    Serial.println(nowAngle);
     if (isleft)
     {
       if (isChange)
@@ -496,7 +539,7 @@ void turnByAngle(int speed,boolean isleft,int angle,int initAngle)
         else
         {
           carTurnAdvance(0,speed);
-          delay(200);    
+          delay(50);    
         }
       }
       else
@@ -508,7 +551,7 @@ void turnByAngle(int speed,boolean isleft,int angle,int initAngle)
         else
         {
           carTurnAdvance(0,speed);
-          delay(200);    
+          delay(50);    
         }
         
       }
@@ -525,7 +568,7 @@ void turnByAngle(int speed,boolean isleft,int angle,int initAngle)
         else
         {
           carTurnAdvance(speed,0);
-          delay(200);    
+          delay(50);    
         }
       }
       else
@@ -537,7 +580,7 @@ void turnByAngle(int speed,boolean isleft,int angle,int initAngle)
         else
         {
           carTurnAdvance(speed,0);
-          delay(200);    
+          delay(50);    
         }
         
       }
