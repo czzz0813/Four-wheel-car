@@ -101,7 +101,7 @@ void checkWheelStoped()
   
   static unsigned long timer = 0;                //print manager timer
   
-  if(millis() - timer > 10000){                   
+  if(millis() - timer > 5000){                   
     Serial.print("checkWheelStoped:coder[0]");
     Serial.println(coder[0]);
       Serial.println("checkWheelStoped:coder[1]");
@@ -110,7 +110,7 @@ void checkWheelStoped()
     if (coder[0]<5 && coder[1]<5)
     {
       Serial.println("checkWheelStoped:stop");
-       //  isStop=true;
+       isStop=true;
     }
     
     //    Serial.print("Coder value: ");
@@ -328,7 +328,7 @@ void autoRunNew()
     
     // servoSweep();
     int posNow=90;
-    int initTurnSpeed=150;
+    int initTurnSpeed=200;
     int initTurnDelay=2000;
     int initAdvanceSpeed=70;
     int initAdvanceDelay=200;
@@ -409,7 +409,7 @@ void autoRun()
 {
     // servoSweep();
     int posNow=90;
-    int initTurnSpeed=120;
+    int initTurnSpeed=150;
     int initTurnDelay=2000;
     
     int initAdvanceDelay=200;
